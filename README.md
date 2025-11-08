@@ -1,7 +1,7 @@
-## DigitalHome Data Model — Conceptual Design Whitepaper
+## DigitalHome Data Model
 
 ### Purpose
-This whitepaper defines the conceptual design for the DigitalHome data model, which unites traditional real estate infrastructure with modern smart home automation. It provides the foundation for managing spaces, circuits, equipment, norms, and automation logic in a structured and scalable manner.
+This whitepaper defines the conceptual design for the DigitalHome data model, which unites traditional real estate infrastructure with modern smart home automation. It provides the foundation for managing spaces, circuits, equipment, guidelines, and automation logic in a structured and scalable manner.
 
 ---
 
@@ -29,7 +29,7 @@ This whitepaper defines the conceptual design for the DigitalHome data model, wh
 Represents physical devices, including passive elements (e.g., heaters, lights) and active smart devices (e.g., IoT switches, controllers).
 
 ### EquipmentType:
-Classifies equipment and is defined by category, brand, and metadata. Types may be governed by specific Norms.
+Classifies equipment and is defined by category, brand, and metadata. Types may be governed by specific Guidelines.
 
 ### BOM - EquipmentStructure:
 Enables nesting and composition of Equipment into assemblies using the `EquipmentStructure` entity.
@@ -57,7 +57,7 @@ Enables nesting and composition of Equipment into assemblies using the `Equipmen
 ## 3. Electrical and Data Circuits
 
 ### Circuit:
-Electrical circuits—such as those for lighting, sockets, heating, or appliances—are typically defined and constrained by national Norms. These circuits are modeled using `CircuitType`, and each `Circuit` instance follows the technical standards set out in applicable regulations (e.g., NF C 15-100 for France or DIN VDE 0100 for Germany).
+Electrical circuits—such as those for lighting, sockets, heating, or appliances—are typically defined and constrained by national or organizational Guidelines. These circuits are modeled using `CircuitType`, and each `Circuit` instance follows the technical standards set out in applicable regulations or best practices (e.g., NF C 15-100 for France or DIN VDE 0100 for Germany).
 
 LAN (Local Area Network) can be modeled as a circuit when considering its physical layout, such as Ethernet cabling and distribution switches. This allows tracking wiring lengths, types (e.g., CAT6, CAT7), and connections to equipment like routers and access points.
 
@@ -82,35 +82,39 @@ This entity encompasses both physical and wireless links between components. It 
 
 ---
 
-## 4. Norms and Compliance
+## 4. Guidelines and Compliance Framework
 
-### Norm:
-Defines national or organizational standards that govern circuits, wiring, and equipment.
+### Guideline:
+A Guideline defines a normative or advisory rule that governs circuits, wiring, and equipment. It generalizes **Norms** and **Best Practices** into a unified structure, enabling both strict compliance and creative flexibility.
+
+### Key Attributes:
+- **Category**: Regulation | Standard | BestPractice
+- **Weight**: Numeric value (e.g., 1.0 = mandatory rule, 0.5 = recommended, 0.2 = optional)
+- **Description**: Explains the rationale or intent of the rule.
 
 ### CircuitType:
-Defines a category or class of circuit (e.g., lighting, data network, fire detection), governed by a Norm.
+Defines a category or class of circuit (e.g., lighting, data network, fire detection), governed by a Guideline.
 
 ### Features:
-- Each RealEstate is governed by one or more Norms (e.g., NF C 15-100)
-- Norms determine permitted wiring and equipment
-- Supports compliance validation
+- Each RealEstate is governed by one or more Guidelines (e.g., NF C 15-100, DIN VDE 0100)
+- Guidelines determine permitted wiring, equipment, and connectivity
+- Supports both compliance validation and AI-assisted design creativity within constraints
 
 ### Examples:
-- **NF C 15-100 (France)**: A foundational electrical norm that specifies mandatory practices for residential installations. It governs:
+- **NF C 15-100 (France)** (Category: Standard, Weight: 1.0):
   - Minimum wire cross-sections (e.g., 1.5 mm² for lighting, 2.5 mm² for sockets)
-  - Protection devices (e.g., mandatory use of differential breakers per circuit type)
-  - CircuitType naming and limits (e.g., max 8 lighting points per circuit)
-  - Approved EquipmentTypes (e.g., mandatory fire detectors, grounded outlets)
-  - Acceptable Wiring materials and installation methods (e.g., embedded vs. surface-mounted)
+  - Protection devices (mandatory differential breakers per circuit type)
+  - Max 8 lighting points per circuit
+  - Approved EquipmentTypes and acceptable wiring methods
 
-- **DIN VDE 0100 (Germany)**: The central German norm for low-voltage electrical installations. It aligns closely with IEC standards and governs:
-  - Wiring types and insulation requirements
-  - Specifics for special installations (e.g., wet areas, outdoors)
-  - Socket outlet placement and circuit distribution
-  - Mandatory use of RCDs (residual current devices) for household protection
-  - Standardized color coding and conductor designation
+- **DIN VDE 0100 (Germany)** (Category: Standard, Weight: 1.0):
+  - Wiring types, insulation, and conductor colors
+  - RCD requirements and placement rules
 
-- **REGIE (Belgium)**: Local energy authority rules for grid connection, protection levels, and meter setup
+- **Smart Design Best Practices** (Category: BestPractice, Weight: 0.5):
+  - Encourage cable labeling and modular switch wiring
+  - Recommend energy monitoring per circuit
+  - Suggest AI-optimized load balancing scenarios
 
 ---
 
@@ -120,9 +124,7 @@ Defines a category or class of circuit (e.g., lighting, data network, fire detec
 Renamed from Room, it includes both enclosed and open areas within an Area.
 
 ### Group:
-LAN can also be represented as a Group when viewed as a logical grouping of networked devices for automation, such as media servers, smart TVs, IP cameras, and access points that may be managed as a single network segment or scenario target.
-
-Defines a logical (non-physical) grouping of Equipment, typically for automation scenarios.
+Defines a logical (non-physical) grouping of Equipment, typically for automation scenarios. Groups can also represent logical network or functional sets (e.g., LAN Media Group, Heating Group).
 
 ### Use Cases:
 - Groups simplify control logic for smart home scenarios
@@ -176,62 +178,12 @@ Devices or Groups that are controlled as a result of scenario execution.
 
 ---
 
-## Final Mermaid ER Diagram
-
-```mermaid
-erDiagram
-
-  RealEstate ||--o{ Area : contains
-  Area ||--o{ Space : contains
-  Space ||--o{ Equipment : contains
-
-  Equipment }o--|| EquipmentType : has_type
-  EquipmentType ||--o{ Supplier : offered_by
-  Norm ||--o{ EquipmentType : governs_equipment
-
-  Equipment ||--o{ EquipmentStructure : composed_of
-  EquipmentStructure }o--|| Equipment : includes
-
-  RealEstate }o--|| Norm : governed_by
-  Norm ||--o{ CircuitType : defines
-  Norm ||--o{ Connectivity : governs
-
-  CircuitType ||--o{ Circuit : categorizes
-  Circuit ||--o{ CircuitComponent : has_nodes
-  CircuitComponent ||--|| Equipment : represents
-
-  Circuit ||--o{ CircuitConnectivityLink : connects
-  CircuitConnectivityLink }o--|| CircuitComponent : from_node
-  CircuitConnectivityLink }o--|| CircuitComponent : to_node
-  CircuitConnectivityLink ||--|| Connectivity : uses
-
-  RealEstate ||--o{ Group : defines
-  Group }o--o{ Equipment : groups
-
-  Scenario ||--o{ Equipment : uses_as_sensor
-  Scenario }o--o{ Equipment : acts_on_equipment
-  Scenario }o--o{ Group : acts_on_group
-
-  Scenario {
-    String id
-    String name
-    AWSJSON logic
-  }
-
-  Connectivity {
-    String id
-    String type
-    Float length_m
-  }
-```
-
----
-
 ## Conclusion
 This extended model delivers a comprehensive and extensible framework for smart building management. It supports:
 - Physical hierarchy mapping
 - Engineering-level component and circuit modeling
-- Country-specific compliance
+- Country-specific compliance and design best practices
 - Smart home automation through Scenarios and Groups
+- Generative AI creativity within the safe boundaries of defined Guidelines
 
-It is ready to support visual builders, simulation tools, ERP integration, or rule-based validation engines for sustainable and scalable smart home infrastructure.
+It is ready to support visual builders, simulation tools, ERP integration, or AI-driven rule-based validation engines for sustainable and scalable smart home infrastructure.
