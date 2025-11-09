@@ -1,195 +1,117 @@
-<<<<<<< HEAD
-## DigitalHome Data Model
-=======
-# Smart Home Conceptual Model
-A smart home consists of smart devices that are physically connected to controlled equipment, such as heating, lamps, refrigerators, or water systems. These devices operate in an area, such as a room or a garden, that belongs to a real estate property, such as an apartment, building, or land. The smart device can be a commercial off-the-shelf unit or a DIY project composed of different components. 
-The brain of the smart home is the controller, which can also be seen as a component itself. The controller communicates with the smart devices and allows you to monitor and manage them remotely.
->>>>>>> e562c8ca85a60ec7df7edbad59cce830bb816b94
+# 🏡 DigitalHome.Cloud Semantic Core
 
-### Purpose
-This whitepaper defines the conceptual design for the DigitalHome data model, which unites traditional real estate infrastructure with modern smart home automation. It provides the foundation for managing spaces, circuits, equipment, guidelines, and automation logic in a structured and scalable manner.
+The **DigitalHome.Cloud Semantic Core** is at this stage and experimental project aiming at building an open, interoperable foundation of the DigitalHome ecosystem.  
+It models how real-world spaces, circuits, and equipment relate semantically from architecture to automation 
+and aligns with international building standards such as **BRICK**, **RealEstateCore**, and **IFC**.
 
 ---
 
-## 1. Real Estate and Physical Layout
+## 🌍 Vision
 
-### Entities:
-- **RealEstate**: A physical property such as a house, apartment, or landholding.
-- **Area**: A major subdivision of a property (e.g., house, garage, garden).
-- **Space**: A specific physical location within an Area, such as a kitchen, terrace, or stairwell.
+In a world where technology advances rapidly, **DigitalHome.Cloud** enables people, devices, and AI systems to share a common understanding of homes and buildings —  
+using open ontologies, reasoning, and validated rules instead of proprietary data silos.
 
-### Principles:
-- Spaces can be enclosed (room, hallway) or open (balcony, stairwell).
-- Each Space contains Equipment and can be linked to Circuits.
-
-### Examples:
-- RealEstate: "Villa in Aveyron", Country: France
-- Area: "Main Building", "Outdoor Zone"
-- Space: "Master Bedroom", "Roof Terrace", "Cellar Stairs"
+**Key principles:**
+- 🧩 *Everything is linked semantically, from physical rooms to digital models.*
+- ⚖️ *Compliance and creativity coexist: regulations and best practices are expressed as SHACL shapes, not hard-coded logic.*
+- 🔗 *Full BRICK compatibility for interoperability with building automation systems.*
 
 ---
 
-## 2. Equipment and Bill of Materials (BOM)
+## 🧱 Semantic Foundation
 
-### Equipment:
-Represents physical devices, including passive elements (e.g., heaters, lights) and active smart devices (e.g., IoT switches, controllers).
+### Ontology
+- Defined in **Turtle (`.ttl`)** under `/ontology`
+- Provides classes and relationships such as:
+  - `dhc:RealEstate`, `dhc:Area`, `dhc:Space`, `dhc:Equipment`, `dhc:Group`, `dhc:Scenario`
+- Aligned with **BRICK Schema** (`/ontology/dhc-brick-alignment.ttl`)
+- Published at runtime as **JSON-LD** to a public S3 bucket (MVP)
 
-### EquipmentType:
-Classifies equipment and is defined by category, brand, and metadata. Types may be governed by specific Guidelines.
+### SHACL Shapes
+- Validation rules and national standards live under `/shapes`
+- Each rule pack (e.g., **NF C 15-100**) enforces electrical and safety compliance
+- Shapes extend core ontology terms, ensuring model consistency across instances
 
-### BOM - EquipmentStructure:
-Enables nesting and composition of Equipment into assemblies using the `EquipmentStructure` entity.
-
-### Controllers (continued):
-- Lifecycle stage classification
-- Reference to documentation and icon in S3
-- Supplier management
-
-### Examples:
-- **Photovoltaic System**: composed of multiple Equipment items:
-  - PV Panels
-  - Inverter
-  - Combiner Box
-  - Monitoring Unit (optional IoT)
-  - Smart Meter (for grid export)
-  - Mounting Structure
-- This system can be represented as a top-level Equipment (Photovoltaic Plant) with child Equipment items structured through `EquipmentStructure`.
-- EquipmentType: ENERGY_GENERATION, MONITORING, METERING
-- Supplier: SMA, Fronius, Enphase, Victron
-- S3 Bucket: Holds panel spec sheets, inverter firmware, and installation guides
+### Instances
+- Real building or home graphs expressed as RDF (`.ttl`) or runtime JSON-LD
+- Stored privately per tenant in protected S3 (`s3://digitalhome-cloud-protected/tenants/...`)
 
 ---
 
-## 3. Electrical and Data Circuits
+## ⚙️ Architecture Overview
 
-### Circuit:
-Electrical circuits—such as those for lighting, sockets, heating, or appliances—are typically defined and constrained by national or organizational Guidelines. These circuits are modeled using `CircuitType`, and each `Circuit` instance follows the technical standards set out in applicable regulations or best practices (e.g., NF C 15-100 for France or DIN VDE 0100 for Germany).
+```mermaid
+graph TD
+  A[d hc-core.schema.ttl<br>Ontology classes & properties] --> B[dhc-brick-alignment.ttl<br>Align with BRICK & REC]
+  A --> C[shapes/*.ttl<br>National & best-practice rule packs]
+  A --> D[instances/*.ttl<br>Building graphs]
+  C --> E[pySHACL Validation / CI]
+  A --> F[JSON-LD Runtime → S3 Public Bucket]
+```
 
-LAN (Local Area Network) can be modeled as a circuit when considering its physical layout, such as Ethernet cabling and distribution switches. This allows tracking wiring lengths, types (e.g., CAT6, CAT7), and connections to equipment like routers and access points.
+**Design-time:**  
+Author and validate RDF/OWL ontologies in `.ttl` on GitHub.  
+CI converts and publishes JSON-LD to versioned S3 paths.
 
-### CircuitComponent:
-Represents one Equipment within a circuit.
-
-### CircuitConnectivityLink:
-Represents the connectivity (physical or wireless) that connects two CircuitComponents. This generalized term covers traditional wiring as well as wireless protocols used in smart installations.
-
-### Connectivity:
-This entity encompasses both physical and wireless links between components. It includes copper, fiber, Ethernet, and also wireless technologies such as ZigBee, Bluetooth, or Wi-Fi where they serve as the communication or control medium between Equipment nodes.
-
-### Features:
-- Structure circuits as directed graphs
-- Represent any topology (star, tree, mesh)
-- Model real electrical networks and data flows
-
-### Example:
-**Kitchen Lighting Circuit**
-- Components: Differential → Switch → Light Fixture 1 → Light Fixture 2
-- Wiring: 3x1.5mm² Cu between each component
+**Runtime:**  
+Amplify and other DigitalHome.Cloud apps consume the public JSON-LD context;  
+protected instances reference the same vocabulary for live control, analytics, and simulation.
 
 ---
 
-## 4. Guidelines and Compliance Framework
+## 🧩 Core Model Highlights
 
-### Guideline:
-A Guideline defines a normative or advisory rule that governs circuits, wiring, and equipment. It generalizes **Norms** and **Best Practices** into a unified structure, enabling both strict compliance and creative flexibility.
-
-### Key Attributes:
-- **Category**: Regulation | Standard | BestPractice
-- **Weight**: Numeric value (e.g., 1.0 = mandatory rule, 0.5 = recommended, 0.2 = optional)
-- **Description**: Explains the rationale or intent of the rule.
-
-### CircuitType:
-Defines a category or class of circuit (e.g., lighting, data network, fire detection), governed by a Guideline.
-
-### Features:
-- Each RealEstate is governed by one or more Guidelines (e.g., NF C 15-100, DIN VDE 0100)
-- Guidelines determine permitted wiring, equipment, and connectivity
-- Supports both compliance validation and AI-assisted design creativity within constraints
-
-### Examples:
-- **NF C 15-100 (France)** (Category: Standard, Weight: 1.0):
-  - Minimum wire cross-sections (e.g., 1.5 mm² for lighting, 2.5 mm² for sockets)
-  - Protection devices (mandatory differential breakers per circuit type)
-  - Max 8 lighting points per circuit
-  - Approved EquipmentTypes and acceptable wiring methods
-
-- **DIN VDE 0100 (Germany)** (Category: Standard, Weight: 1.0):
-  - Wiring types, insulation, and conductor colors
-  - RCD requirements and placement rules
-
-- **Smart Design Best Practices** (Category: BestPractice, Weight: 0.5):
-  - Encourage cable labeling and modular switch wiring
-  - Recommend energy monitoring per circuit
-  - Suggest AI-optimized load balancing scenarios
+| Domain | Description |
+|---------|--------------|
+| **RealEstate / Area / Space** | Physical and spatial hierarchy of a property |
+| **Equipment / EquipmentType** | Physical or virtual devices and assemblies |
+| **Circuit / Connectivity** | Electrical and data networks (wired or wireless) |
+| **Group** | Logical grouping for automation or energy zones |
+| **Scenario** | Automation logic linking sensors, controllers, and actors |
+| **Guideline / Shape** | Compliance and best-practice validation layer |
 
 ---
 
-## 5. Spaces and Logical Groupings
+## 🔗 BRICK Compatibility
 
-### Space:
-Renamed from Room, it includes both enclosed and open areas within an Area.
-
-### Group:
-Defines a logical (non-physical) grouping of Equipment, typically for automation scenarios. Groups can also represent logical network or functional sets (e.g., LAN Media Group, Heating Group).
-
-### Use Cases:
-- Groups simplify control logic for smart home scenarios
-- One Group may span multiple Spaces and Areas
-
-### Examples:
-- Group: "Night Lighting" includes garden lights and hallway LEDs
-- Group: "Ground Floor Heating" includes 3 radiator valves and a thermostat
-- Group: "LAN Media Group" includes Smart TV, NAS, Wi-Fi APs
+The Semantic Core is **natively aligned** with [Brick Schema](https://brickschema.org/):
+- `dhc:Equipment` → `brick:Equipment`
+- `dhc:Point` → `brick:Point`
+- `dhc:Space` → `brick:Location`
+- Common metadata such as `brick:hasPoint`, `brick:isPartOf`, and `brick:feeds` are reused directly.
 
 ---
 
-## 6. Automation Scenarios
+## 🧰 Developer Workflow
 
-### Scenario:
-Represents a defined automation rule or behavioral mode involving sensors, logic, and actions.
-
-### Controllers:
-Controllers are the central brains of the smart home. They execute scenario logic and interface with both sensors and actors. Controllers are themselves a type of Equipment, typically represented as a home automation hub or software platform.
-
-Examples include:
-- HomeMatic CCU
-- Home Assistant
-- OpenHAB
-- KNX Gateway
-
-They manage logic evaluation, input processing, scenario scheduling, and command dispatching.
-
-### Sensors:
-Equipment that serve as input triggers (e.g., motion detectors, temperature sensors).
-
-### Actors:
-Devices or Groups that are controlled as a result of scenario execution.
-
-### Features:
-- Logic defined in JSON for condition-action flows
-- Many-to-many relationships for Sensors, Actor Equipment, and Actor Groups
-- Reusable, scenario-driven automation architecture
-- Scenarios are executed by a central **Controller**, which is also modeled as an Equipment
-
-### Examples:
-**Scenario: "Evening Mode"**
-- Sensors: Motion Sensor in Living Room
-- Logic: IF motion AND time > 19:00 THEN turn on lights
-- Actors: Group "Living Room Lights"
-
-**Scenario: "Away Mode"**
-- Sensors: Door Contact, Motion Sensor
-- Logic: IF motion detected AND door closed AND security armed THEN alert
-- Actors: Equipment: Siren, Group: All Lights
+1. **Clone** this repo  
+2. **Edit** ontology or shapes (`.ttl`)
+3. **Validate** with `pyshacl` or `scripts/validate.sh`
+4. **Convert** to JSON-LD using CI (`build-jsonld.py`)
+5. **Publish** versioned artifacts to S3 (`model-vX.Y.Z`, `shapes-vX.Y.Z`)
+6. **Consume** via Amplify APIs or local JSON-LD graph queries
 
 ---
 
-## Conclusion
-This extended model delivers a comprehensive and extensible framework for smart building management. It supports:
-- Physical hierarchy mapping
-- Engineering-level component and circuit modeling
-- Country-specific compliance and design best practices
-- Smart home automation through Scenarios and Groups
-- Generative AI creativity within the safe boundaries of defined Guidelines
+## 📦 Repository Layout
 
-It is ready to support visual builders, simulation tools, ERP integration, or AI-driven rule-based validation engines for sustainable and scalable smart home infrastructure.
+```
+ontology/         # Core schemas and alignments
+shapes/           # Compliance & best-practice rule packs
+instances/        # Example or tenant-specific graphs
+scripts/          # Validation & build tools
+.github/workflows # CI for validation and publishing
+```
+
+---
+
+## 📜 Licensing & Governance
+
+- **License:** MIT  
+- **Namespace:** `https://digitalhome.cloud/ontology#` (`dhc:`)  
+- **Maintainer:** DLab 5 / DigitalHome.Cloud Core Team  
+- **Releases:** Semantic versioning  
+  - `model-vX.Y.Z` – ontology & alignments  
+  - `shapes-vX.Y.Z` – validation packs  
+
+---
