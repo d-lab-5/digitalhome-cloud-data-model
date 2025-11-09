@@ -82,17 +82,6 @@ The Semantic Core is **natively aligned** with [Brick Schema](https://brickschem
 
 ---
 
-## 🧰 Developer Workflow
-
-1. **Clone** this repo  
-2. **Edit** ontology or shapes (`.ttl`)
-3. **Validate** with `pyshacl` or `scripts/validate.sh`
-4. **Convert** to JSON-LD using CI (`build-jsonld.py`)
-5. **Publish** versioned artifacts to S3 (`model-vX.Y.Z`, `shapes-vX.Y.Z`)
-6. **Consume** via Amplify APIs or local JSON-LD graph queries
-
----
-
 ## 📦 Repository Layout
 
 ```
